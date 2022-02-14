@@ -1,4 +1,4 @@
-# Lesson 1: [Welcome to Remix! Simple Storage](https://github.com/PatrickAlphaC/simple_storage)
+# Lesson 1: [Simple Storage Contract](https://github.com/smaul0/Hacking-the-Blockchain/tree/main/Solidity/Codes/SimpleStorage)
 💻 Code: https://github.com/smaul0/Hacking-the-Blockchain/blob/main/Solidity/Codes/SimpleStorage/SimpleStorage.sol
 ### [Remix](https://remix.ethereum.org/)
 
@@ -31,5 +31,14 @@
 - Connecting Metamask
 - Interacting with Deployed Contracts
 - The EVM
+
+
+# Lesson 2: [Storage Factory](https://github.com/smaul0/Hacking-the-Blockchain/tree/main/Solidity/Codes/StorageFactory)
+💻 Code: https://github.com/smaul0/Hacking-the-Blockchain/tree/main/Solidity/Codes/StorageFactory
+### Inheritance, Factory Pattern, and Interacting with External Contracts
+- Factory Pattern
+- Imports
+- Deploy a Contract From a Contract
+- Interact With a Deployed Contract
 
 
