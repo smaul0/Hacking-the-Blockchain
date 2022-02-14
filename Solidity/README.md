@@ -1,7 +1,8 @@
 # Lesson 1: [Welcome to Remix! Simple Storage](https://github.com/PatrickAlphaC/simple_storage)
-💻 Code: https://github.com/PatrickAlphaC/simple_storage
-### Everything in this section can be read about in the [Solidity Documentation](https://docs.soliditylang.org/en/v0.8.6/index.html)
+💻 Code: https://github.com/smaul0/Hacking-the-Blockchain/blob/main/Solidity/Codes/SimpleStorage/SimpleStorage.sol
 ### [Remix](https://remix.ethereum.org/)
+
+#Learned in this Section
 ### Basic Solidity
 - Versioning
 - Compiling
@@ -30,3 +31,5 @@
 - Connecting Metamask
 - Interacting with Deployed Contracts
 - The EVM
+
+
