@@ -113,7 +113,7 @@
   - Solidity Prettier
   - [Python Black](https://pypi.org/project/black/)
   - [pip](https://pypi.org/project/pip/)
-### Our First Python Script with Web3.py - Deploying a Contract
+### First Python Script with Web3.py - Deploying a Contract
 - Reading our solidity file
 - Running a Python Script in the Terminal
 - [Windows Shortcuts](https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf)
@@ -151,7 +151,7 @@
   - [python-dotenv](https://pypi.org/project/python-dotenv/)
 - Viewing our Transaction / Deployment in Ganache
 - Waiting for Block Confirmations
-### Interacting with Our Contract in Python & Web3.py
+### Interacting with Contract in Python & Web3.py
 - 2 Things you always need
   1. Contract Address
   2. Contract ABI
