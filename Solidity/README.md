@@ -226,7 +226,7 @@
 - build/deployments
 - Accessing previous deployments
 - Interacting with contracts deployed in our brownie project
-### [Brownie console]
+### Brownie console
 - `brownie console`
 
 
