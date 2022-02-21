@@ -1,0 +1,3 @@
+dotenv: .env
+wallets:
+  form_key: ${PRIVATE_KEY}
