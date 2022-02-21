@@ -25,7 +25,7 @@ It's fallback function and here 2 requirements required to make ourself owner
 # 2. [Challenge 2](https://ethernaut.openzeppelin.com/level/0x9CB391dbcD447E645D6Cb55dE6ca23164130D008)
 
 Tasks: \
-    - Claim ownership of the contract below to complete this level.
+- Claim ownership of the contract below to complete this level.
 
 **Solution:** \
 Vulnerable Code: 
