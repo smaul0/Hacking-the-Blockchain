@@ -16,7 +16,7 @@ Let's see why.
    plus 1 Ether sent from this contract).
 
 What happened? \
-Attack was able to call EtherStore.withdraw multiple times before \
+Attack was able to call EtherStore.withdraw multiple times before 
 EtherStore.withdraw finished executing.
 
 Here is how the functions were called
@@ -106,7 +106,7 @@ User can also extend the wait time beyond the 1 week waiting period.
    withdraw your ether.
 
 What happened? \
-Attack caused the TimeLock.lockTime to overflow and was able to withdraw \
+Attack caused the TimeLock.lockTime to overflow and was able to withdraw 
 before the 1 week waiting period.
 
 ```
@@ -184,7 +184,7 @@ Winner will be able to withdraw all Ether.
    No one can become the winner.
 
 What happened? \
-Attack forced the balance of EtherGame to equal 7 ether. \
+Attack forced the balance of EtherGame to equal 7 ether. 
 Now no one can deposit and the winner cannot be set.
 
 ```
@@ -263,7 +263,7 @@ contract by exploiting delegatecall. Let's see how.
 
 What happened? \
 Eve called Attack.attack(). \
-Attack called the fallback function of HackMe sending the function \
+Attack called the fallback function of HackMe sending the function 
 selector of pwn(). HackMe forwards the call to Lib using delegatecall. \
 Here msg.data contains the function selector of pwn(). \
 This tells Solidity to call the function pwn() inside Lib. \
