@@ -15,8 +15,8 @@ Let's see why.
    You will get 3 Ethers back (2 Ether stolen from Alice and Bob,
    plus 1 Ether sent from this contract).
 
-What happened?
-Attack was able to call EtherStore.withdraw multiple times before
+What happened? \
+Attack was able to call EtherStore.withdraw multiple times before \
 EtherStore.withdraw finished executing.
 
 Here is how the functions were called
@@ -96,8 +96,8 @@ Integers in Solidity overflow / underflow without any errors
 
 Default behaviour of Solidity 0.8 for overflow / underflow is to throw an error.
 
-This contract is designed to act as a time vault.
-User can deposit into this contract but cannot withdraw for atleast a week.
+This contract is designed to act as a time vault. \
+User can deposit into this contract but cannot withdraw for atleast a week. \
 User can also extend the wait time beyond the 1 week waiting period.
 
 1. Deploy TimeLock
@@ -105,8 +105,8 @@ User can also extend the wait time beyond the 1 week waiting period.
 3. Call Attack.attack sending 1 ether. You will immediately be able to
    withdraw your ether.
 
-What happened?
-Attack caused the TimeLock.lockTime to overflow and was able to withdraw
+What happened? \
+Attack caused the TimeLock.lockTime to overflow and was able to withdraw \
 before the 1 week waiting period.
 
 ```
@@ -172,9 +172,9 @@ Code: https://solidity-by-example.org/hacks/self-destruct/
 **Contracts can be deleted from the blockchain by calling ```selfdestruct``` .** \
 **```selfdestruct``` sends all remaining Ether stored in the contract to a designated address.**
 
-A malicious contract can use ```selfdestruct``` to force sending Ether to any contract.
-The goal of this game is to be the 7th player to deposit 1 Ether.
-Players can deposit only 1 Ether at a time.
+A malicious contract can use ```selfdestruct``` to force sending Ether to any contract. \
+The goal of this game is to be the 7th player to deposit 1 Ether. \
+Players can deposit only 1 Ether at a time. \
 Winner will be able to withdraw all Ether.
 
 1. Deploy EtherGame
@@ -183,8 +183,8 @@ Winner will be able to withdraw all Ether.
 3. Call Attack.attack sending 5 ether. This will break the game
    No one can become the winner.
 
-What happened?
-Attack forced the balance of EtherGame to equal 7 ether.
+What happened? \
+Attack forced the balance of EtherGame to equal 7 ether. \
 Now no one can deposit and the winner cannot be set.
 
 ```
@@ -250,7 +250,7 @@ You must keep 2 things in mind when using ```delegatecall```
 1. ```delegatecall``` preserves context (storage, caller, etc...)
 2. storage layout must be the same for the contract calling ```delegatecall``` and the contract getting called
 
-HackMe is a contract that uses delegatecall to execute code.
+HackMe is a contract that uses delegatecall to execute code. \
 It it is not obvious that the owner of HackMe can be changed since there is no
 function inside HackMe to do so. However an attacker can hijack the
 contract by exploiting delegatecall. Let's see how.
@@ -261,14 +261,14 @@ contract by exploiting delegatecall. Let's see how.
 4. Eve calls Attack.attack()
 5. Attack is now the owner of HackMe
 
-What happened?
-Eve called Attack.attack().
-Attack called the fallback function of HackMe sending the function
-selector of pwn(). HackMe forwards the call to Lib using delegatecall.
-Here msg.data contains the function selector of pwn().
-This tells Solidity to call the function pwn() inside Lib.
-The function pwn() updates the owner to msg.sender.
-Delegatecall runs the code of Lib using the context of HackMe.
+What happened? \
+Eve called Attack.attack(). \
+Attack called the fallback function of HackMe sending the function \
+selector of pwn(). HackMe forwards the call to Lib using delegatecall. \
+Here msg.data contains the function selector of pwn(). \
+This tells Solidity to call the function pwn() inside Lib. \
+The function pwn() updates the owner to msg.sender. \
+Delegatecall runs the code of Lib using the context of HackMe. \
 Therefore HackMe's storage was updated to msg.sender where msg.sender is the
 caller of HackMe, in this case Attack.
 
