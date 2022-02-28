@@ -241,6 +241,8 @@ contract Attack {
 
 # 5. Delegatecall
 
+Code: https://solidity-by-example.org/hacks/delegatecall
+
 **The ```delegatecall``` function is used to call functions from other contracts as if they belong to the caller contract. Thus the callee may change the state of the calling address**
 
 ```delegatecall``` is tricky to use and wrong usage or incorrect understanding can lead to devastating results.
@@ -392,6 +394,8 @@ contract Attack {
 
 # 6. Sources for randomness
 
+Code: https://solidity-by-example.org/hacks/randomness
+
 ```blockhash``` and ```block.timestamp``` are not reliable sources for randomness
 
 GuessTheRandomNumber is a game where you win 1 Ether if you can guess the
@@ -447,6 +451,8 @@ contract Attack {
 
 
 # 7. Denial of Service
+
+Code: https://solidity-by-example.org/hacks/denial-of-service
 
 There are many ways to attack a smart contract to make it unusable.
 One exploit is denial of service by making the function to send Ether fail.
@@ -532,6 +538,8 @@ contract Attack {
 
 # 8. Phishing with tx.origin
 
+Code: https://solidity-by-example.org/hacks/phishing-with-tx-origin
+
 What's the difference between msg.sender and tx.origin?
 If contract A calls B, and B calls C, in C msg.sender is B and tx.origin is A.
 
@@ -608,6 +616,8 @@ contract Attack {
 
 # 9. Hiding Malicious Code with External Contract
 
+Code: https://solidity-by-example.org/hacks/hiding-malicious-code-with-external-contract
+
 In Solidity any address can be casted into specific contract, even if the contract at the address is not the one being casted.
 This can be exploited to hide malicious code. 
 
@@ -676,4 +686,12 @@ contract Mal {
     }
 }
 ```
+
+
+# 10. Front Running
+
+Code: https://solidity-by-example.org/hacks/front-running/
+
+Transactions take some time before they are mined. An attacker can watch the transaction pool and send a transaction, have it included in a block before the original transaction. This mechanism can be abused to re-order transactions to the attacker's advantage.
+
 
