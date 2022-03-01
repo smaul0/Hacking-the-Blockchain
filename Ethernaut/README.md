@@ -114,7 +114,7 @@ This `changeOwner` function is basically checking if `tx.origin` not equally `ms
 # 5. [Challenge 5: Token](https://ethernaut.openzeppelin.com/level/0x63bE8347A617476CA461649897238A31835a32CE)
 
 Tasks: 
-- The goal of this level is for you to hack the basic token contract below. We are given 20 tokens to start with and you will beat the level if you somehow manage to get your hands on any additional tokens. Preferably a very large amount of tokens.
+- The goal of this level is for us to hack the basic token contract below. We are given 20 tokens to start with and you will beat the level if you somehow manage to get your hands on any additional tokens. Preferably a very large amount of tokens.
 
 **Solution:** \
 Vulnerable Code:
