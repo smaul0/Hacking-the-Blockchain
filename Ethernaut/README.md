@@ -205,3 +205,39 @@ contract Attack {
 To solve the challenge we can simply use `selfdestruct` in our contract and than it will send all the ether to our desire address.
 
 
+# 8. [Challenge 8: Vault](https://ethernaut.openzeppelin.com/level/0xf94b476063B6379A3c8b6C836efB8B3e10eDe188)
+
+Tasks:
+- Unlock the vault to pass the level!
+
+**Solution:** \
+Vulnerable Code:
+```
+  bytes32 private password;
+
+  constructor(bytes32 _password) public {
+    locked = true;
+    password = _password;
+  }
+```
+
+To solve in command line:
+```
+await web3.eth.getStorageAt(contract.address, 1)
+web3.utils.toAscii("0x412076657279207374726f6e67207365637265742070617373776f7264203a29")
+contract.unlock("0x412076657279207374726f6e67207365637265742070617373776f7264203a29")
+```
+
+It's important to remember that marking a variable as private only prevents other contracts from accessing it. State variables marked as private and local variables are still publicly accessible.
+
+To ensure that data is private, it needs to be encrypted before being put onto the blockchain. In this scenario, the decryption key should never be sent on-chain, as it will then be visible to anyone who looks for it. [zk-SNARKs](https://blog.ethereum.org/2016/12/05/zksnarks-in-a-nutshell/) provide a way to determine whether someone possesses a secret parameter, without ever having to reveal the parameter. 
+
+
+
+# 9. [Challenge 9: King](https://ethernaut.openzeppelin.com/level/0x43BA674B4fbb8B157b7441C2187bCdD2cdF84FD5)
+
+Tasks:
+- The contract below represents a very simple game: whoever sends it an amount of ether that is larger than the current prize becomes the new king. On such an event, the overthrown king gets paid the new prize, making a bit of ether in the process! As ponzi as it gets xD
+
+- Such a fun game. Your goal is to break it.
+- When you submit the instance back to the level, the level is going to reclaim kingship. You will beat the level if you can avoid such a self proclamation.
