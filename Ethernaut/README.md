@@ -676,18 +676,18 @@ contract AlienCodex {
 
 This chapter focuses on understanding array underflow in storage and how to calculate the storage location of elements in array in storage. 
 Watching the code first, you will see that all functions require contact=true to be called. Open Console (F12) and call the make_contact function: `contract.make_contact()`
+
 At this point, you can view the data stored in codex in storage:
-`
-> await web3.eth.getStorageAt(instance, 1);
-< "0x0000000000000000000000000000000000000000000000000000000000000000"
-`
+
+`> await web3.eth.getStorageAt(instance, 1);`\
+`< "0x0000000000000000000000000000000000000000000000000000000000000000"`
+
 codex is an array of bytes32, the length of the array is stored in slot 1, and the data of the actual elements in the array is stored in another method
 At this point, if we call the retract function, the array of codex can be underflowed: `contract.retract()`
 Look again at the data in slot 1 after the call:
-`
-> await web3.eth.getStorageAt(instance, 1);
-< "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-`
+
+`> await web3.eth.getStorageAt(instance, 1);`\
+`< "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"`
 
 It can be seen that the array length in slot 1 underflows to the maximum value.
 
