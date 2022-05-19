@@ -22,7 +22,7 @@ It's fallback function and here 2 requirements required to make ourself owner
 - To reduce contract balance to 0 we can simply call ```withdraw``` function and able to solve the 1st challenge.
 
 
-# 2. [Challenge 2: Fallout](https://ethernaut.openzeppelin.com/level/0x9CB391dbcD447E645D6Cb55dE6ca23164130D008)
+# 2. [Challenge 2: Fallout](https://ethernaut.openzeppelin.com/level/0x5732B2F88cbd19B6f01E3a96e9f0D90B917281E5)
 
 Tasks: 
 - Claim ownership of the contract below to complete this level.
